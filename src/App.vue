@@ -24,7 +24,6 @@
         <h2>Enjoy</h2>
     </div>
   </div>
-  <!-- <HelloWorld msg="Vite + Vue" /> -->
 </template>
 
 <script setup>
@@ -64,10 +63,6 @@ import bg2 from "./assets/michael-olsen--djS1aPrSr4-unsplash.jpg"
     
     count = geometry.attributes.position.count; 
     animate()
-    // setTimeout(()=>{
-    //   animate()
-    // }, 3000)
-    // renderer.render(scene, camera)
  })
  function animate() {
     const time = clock.getElapsedTime();
@@ -85,7 +80,6 @@ import bg2 from "./assets/michael-olsen--djS1aPrSr4-unsplash.jpg"
       geometry.computeVertexNormals();
       geometry.attributes.position.needsUpdate = true
     }
-    // console.log(1)
     requestAnimationFrame(animate)
     renderer.render(scene, camera)
   }
