@@ -1,6 +1,27 @@
 <template>
-  <div class="home">
+  <!-- <div class="home">
     <div class="canvas-cotainer" ref="canvasDom">
+    </div>
+  </div> -->
+
+  <div class="content">
+    <div class="three_bg" ref="threeBgDom">
+    </div>
+    <header>
+      <div class="nav">
+          <div class="nav_list">
+               <li><a href="#"><span>Home</span></a></li>
+               <li><a href="#"><span>About Us</span></a></li>
+               <li><a href="#"><span>3D background</span></a></li>
+               <li><a href="#"><span>Projects</span></a></li>
+               <li><a href="#"><span>Contact</span></a></li>
+          </div>
+      </div>
+    </header>
+    <div class="description">
+        <h1>Hello</h1>
+        <h2>This is a <br> 3D background</h2>
+        <h2>Enjoy</h2>
     </div>
   </div>
   <!-- <HelloWorld msg="Vite + Vue" /> -->
@@ -8,126 +29,77 @@
 
 <script setup>
  import * as THREE from "three"
- import gsap from "gsap"
- import { OrbitControls }  from "three/examples/jsm/controls/OrbitControls"
- import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
- import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
- import { onMounted, reactive, ref } from "vue";
+ import { onMounted, ref } from "vue";
+ import bg1 from "./assets/marcin-jozwiak-Jmsw8wYy7Ig-unsplash.jpg"
+import bg2 from "./assets/michael-olsen--djS1aPrSr4-unsplash.jpg"
 
- let camera, scene, renderer, labelRenderer;
- let moon, earth;
- let canvasDom = ref(null)
- let pages = ref(null)
- 
+ let   scene, camera, renderer, geometry, material, mesh, container, count;
+
+ let threeBgDom = ref(null)
+
  const clock = new THREE.Clock();
- // 材质加载器
-const textTrueLoader = new THREE.TextureLoader();
+
 
  onMounted(()=>{
-    
-  // 地球半径大小
-  const EARTH_RADIUS = 2.5;
-    const MOON_RADIUS = 0.7;
     // 实例化场景
     scene = new THREE.Scene()
+
     // 实例化相机
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 200)
-    camera.position.set(10, 5, 20)
-    // 坐标轴的对象
-    // const axesHelper = new THREE.AxesHelper( 5 );
-    // scene.add( axesHelper );
-    // 宇宙环境
-    // 加载HDR环境图
-    const rgbLoaderssa = new RGBELoader();
-    rgbLoaderssa.loadAsync("./planets/galaxy.hdr").then((texture)=>{
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        scene.background = texture
-        scene.environment = texture
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 1000)
+    camera.position.z = 5;
+
+    // 材质
+    const loader = new THREE.TextureLoader()
+    geometry = new THREE.PlaneGeometry(17, 8, 15, 9);
+    material = new THREE.MeshBasicMaterial({
+       map: loader.load(bg2)
     })
-    // 环境光
-    const light = new THREE.AmbientLight( 0xffffff, 0.5 ); 
-    light.intensity = 0.3
-    scene.add( light );
-    // 创建聚光灯
-    const spotLight = new THREE.SpotLight( 0xffffff );
-    spotLight.position.set(0, 0, 10)
-    spotLight.intensity = 2
-    spotLight.castShadow = true;
-    scene.add(spotLight)
-    // 创建一个月球
-    const moonGeometry = new THREE.SphereGeometry( MOON_RADIUS, 16, 16 );
-    const moonMaterial = new THREE.MeshPhongMaterial( { 
-        map: textTrueLoader.load('./planets/moon_1024.jpg'),
-    } );
-    moon = new THREE.Mesh(moonGeometry, moonMaterial)
-    moon.castShadow = true
-    scene.add(moon)
+    mesh = new THREE.Mesh(geometry, material)
+    scene.add(mesh)
 
-    const moonDiv = document.createElement("div")
-    moonDiv.className = "label"
-    moonDiv.textContent = "Moon"
-    const moonLabel = new CSS2DObject(moonDiv)
-    moonLabel.position.set(0, MOON_RADIUS + 0.5, 0)
-    moon.add(moonLabel)
-    // 创建一个地球
-    const earthGeometry = new THREE.SphereGeometry( EARTH_RADIUS, 16, 16 );
-    const earthMaterial = new THREE.MeshPhongMaterial( { 
-        shininess: 5,
-        map: textTrueLoader.load('./planets/earth_atmos_2048.jpg'),
-        specularMap: textTrueLoader.load("./planets/earth_specular_2048.jpg"),
-        normalMap:textTrueLoader.load("./planets/earth_normal_2048.jpg"),
-    } );
-    earth = new THREE.Mesh(earthGeometry, earthMaterial)
-    earth.receiveShadow = true
-    scene.add(earth)
-
-    const earthDiv = document.createElement("div")
-    earthDiv.className = "label"
-    earthDiv.textContent = "Earch"
-    const eartchLabel = new CSS2DObject(earthDiv)
-    eartchLabel.position.set(0, EARTH_RADIUS + 0.5, 0)
-    earth.add(eartchLabel)
     // 渲染器
-    renderer = new THREE.WebGL1Renderer()
-    renderer.setPixelRatio(window.devicePixelRatio)
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    // 标签渲染器
-    labelRenderer = new CSS2DRenderer()
-    labelRenderer.setSize(window.innerWidth, window.innerHeight)
-    labelRenderer.domElement.style.position = "absolute"
-    labelRenderer.domElement.style.top = "0px"
-    labelRenderer.domElement.style.color = "#fff"
-    canvasDom.value.appendChild(labelRenderer.domElement)
-    // 开启渲染阴影
-    renderer.shadowMap.enabled = true
-    // 挂载画布对象
-    canvasDom.value.appendChild(renderer.domElement)
-
-    // 绑定控制和摄像头
-    const controls =  new OrbitControls( camera, renderer.domElement );
-    const controls1 =  new OrbitControls( camera, labelRenderer.domElement );
-    controls.enableDamping = true;
+    renderer = new THREE.WebGL1Renderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container = threeBgDom.value.appendChild(renderer.domElement)
+    
+    count = geometry.attributes.position.count; 
     animate()
+    // setTimeout(()=>{
+    //   animate()
+    // }, 3000)
+    // renderer.render(scene, camera)
  })
- var oldTime = 0;
-function animate() {
-    const elapsed = clock.getElapsedTime();
-    moon.position.set(Math.sin(elapsed) * 5, 0, Math.cos(elapsed) * 5)
-    // 地球自转
-    var axis = new THREE.Vector3(0, 1, 0);
-    earth.rotateOnAxis(axis, (elapsed - oldTime) * Math.PI / 10)
-    // moon.rotateOnAxis(axis, elapsed * Math.PI / 2000)
-    renderer.render(scene, camera)
-    labelRenderer.render(scene, camera)
-    oldTime = elapsed
+ function animate() {
+    const time = clock.getElapsedTime();
+    for(let i = 0; i < count; i++){
+      const x = geometry.attributes.position.getX(i)
+      const y = geometry.attributes.position.getY(i)
+
+      const animi1 = 0.25 * Math.sin(x + time * 0.7)
+      const animi2 = 0.35 * Math.sin(x * 1 + time * 0.7)
+      const animi3 = 0.1 * Math.sin(y * 15 + time * 0.7)
+
+      // geometry.attributes.position.setZ(i, animi1);
+      // geometry.attributes.position.setZ(i, animi1 + animi2);
+      geometry.attributes.position.setZ(i, animi1 + animi2 + animi3);
+      geometry.computeVertexNormals();
+      geometry.attributes.position.needsUpdate = true
+    }
+    // console.log(1)
     requestAnimationFrame(animate)
-}
+    renderer.render(scene, camera)
+  }
+  
+ 
+//  var oldTime = 0;
+
 
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
+.three_bg {
+   position: absolute;
+   width: 100%;
+   height: 100vh;
 }
 </style>
